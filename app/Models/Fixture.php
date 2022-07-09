@@ -18,6 +18,7 @@ class Fixture extends Model
       'home_team_id',
       'away_team_id',
       'week',
+      'match'
     ];
 
 }

@@ -16,9 +16,10 @@ return new class extends Migration
         Schema::create('fixtures', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('home_team_id')->constrained('teams');
-            $table->foreignId('away_team_id')->constrained('teams');
+            $table->foreignId('home_team_id')->nullable(true)->constrained('teams');
+            $table->foreignId('away_team_id')->nullable(true)->constrained('teams');
             $table->integer('week');
+            $table->integer('match');
         });
     }
 
