@@ -33,6 +33,11 @@ class CreateFixture extends Command
         }
     }
 
+    function flip($match) {
+        $components = explode(' v ', $match);
+        return $components[1] . " v " . $components[0];
+    }
+
     /**
      * Execute the console command.
      *
@@ -94,6 +99,7 @@ class CreateFixture extends Command
         for ($i = 0; $i < count($weeks); $i++) {
             if ($i % 2 == 0) {
                 $index = $evn++;
+                $interleaved[$i] = $weeks[$index];
                 $fixtures = Fixture::where('week', $i)->get();
                 foreach ($fixtures as $fixture)
                 {
@@ -102,6 +108,7 @@ class CreateFixture extends Command
 
             } else {
                 $index = $odd++;
+                $interleaved[$i] = $weeks[$index];
                 $fixtures = Fixture::where('week', $i)->get();
                 foreach ($fixtures as $fixture)
                 {
@@ -116,7 +123,7 @@ class CreateFixture extends Command
         // to home on odd rounds.
         for ($week = 0; $week < count($weeks); $week++) {
             if ($week % 2 == 1) {
-                //$weeks[$week][0] = $this->flip($weeks[$week][0]);
+                $weeks[$week][0] = $this->flip($weeks[$week][0]);
 
                 $fixture = Fixture::where('week', $week)->where('match', 1)->first();
                 $home_team_id = $fixture->home_team_id;
