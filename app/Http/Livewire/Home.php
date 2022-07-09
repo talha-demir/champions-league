@@ -28,6 +28,6 @@ class Home extends Component
     public function generateFixtures()
     {
         Artisan::call('create:fixture');
-        //return redirect()->route('fixtures');
+        return redirect()->route('fixtures');
     }
 }

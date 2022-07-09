@@ -15,4 +15,9 @@ class SceneController extends Controller
     {
         return view('fixtures');
     }
+
+    public function simulation()
+    {
+        return view('simulation');
+    }
 }

@@ -20,6 +20,7 @@ return new class extends Migration
             $table->foreignId('away_team_id')->nullable(true)->constrained('teams');
             $table->integer('week');
             $table->integer('match');
+            $table->boolean('is_completed')->default(false);
         });
     }
 

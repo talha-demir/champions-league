@@ -17,4 +17,5 @@ use Illuminate\Support\Facades\Route;
 Route::controller(SceneController::class)->group(function () {
     Route::get('/', 'home')->name('home');
     Route::get('/fixtures', 'fixtures')->name('fixtures');
+    Route::get('/simulation', 'simulation')->name('simulation');
 });
