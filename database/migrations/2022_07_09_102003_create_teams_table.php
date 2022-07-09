@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
             $table->string('name');
-            $table->float('player_quality');
-            $table->float('audience_support');
+            $table->float('player_quality')->default(0)->nullable();
+            $table->float('audience_support')->default(0)->nullable();
         });
     }
 
