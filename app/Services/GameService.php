@@ -123,4 +123,14 @@ class GameService
 
         return $fixture;
     }
+
+    public function getNextWeekFixtures()
+    {
+        $playedWeek = Fixture::where('is_completed', true)->max('week');
+        if (is_null($playedWeek))
+        {
+            return Fixture::where('week', 0)->get();
+        }
+        return Fixture::where('is_completed', false)->where('week', $playedWeek + 1)->get();
+    }
 }

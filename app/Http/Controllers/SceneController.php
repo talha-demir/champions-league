@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\GameService;
 use Illuminate\Http\Request;
 
 class SceneController extends Controller

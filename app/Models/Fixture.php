@@ -22,4 +22,14 @@ class Fixture extends Model
       'is_completed'
     ];
 
+    public function homeTeam(): Team
+    {
+        return Team::find($this->home_team_id);
+    }
+
+    public function awayTeam(): Team
+    {
+        return Team::find($this->away_team_id);
+    }
+
 }
