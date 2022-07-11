@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('name');
             $table->float('player_quality')->default(0)->nullable();
             $table->float('audience_support')->default(0)->nullable();
+            $table->float('morale')->default(0)->nullable();
         });
     }
 

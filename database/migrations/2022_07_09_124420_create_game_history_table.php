@@ -22,7 +22,9 @@ return new class extends Migration
             $table->integer('goals_conceded');
             $table->integer('week');
             $table->boolean('won');
-            $table->float('game_point')->default(0);
+            $table->boolean('drawn');
+            $table->float('game_points')->default(0);
+            $table->float('points')->default(0);
 
         });
     }

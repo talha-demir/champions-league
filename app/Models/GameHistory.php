@@ -21,7 +21,10 @@ class GameHistory extends Model
       'goals_scored',
       'goals_conceded',
       'week',
-      'game_point'
+      'game_point',
+      'point',
+      'won',
+      'drawn'
     ];
 
 

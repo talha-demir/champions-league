@@ -19,6 +19,7 @@ class Team extends Model
       'name',
       'player_quality',
       'audience_support',
+      'morale'
     ];
 
     /**
@@ -32,12 +33,27 @@ class Team extends Model
 
     /**
      * @return float
-    */
-    public function getTeamMoraleAttribute(): float
+     */
+    public function getAudienceAttribute(): float
     {
-        $lastGame = $this->gameHistory()->orderBy('week')->first();
-        return $lastGame->won ? '' : $this->player_quality;
+        return $this->lastGame->won ? 0 : $this->audience_support;
     }
+
+    /**
+     * @return Model|HasMany
+     */
+    public function getLastGameAttribute(): Model|HasMany
+    {
+        return $this->gameHistory()->orderBy('week')->first();
+    }
+
+//    /**
+//     * @return Model|HasMany
+//     */
+//    public function getLastWeekFixtureAttribute(): Model|HasMany
+//    {
+//        return $this->gameHistory()->orderBy('week')->first();
+//    }
 
     /**
      * Get old matches
