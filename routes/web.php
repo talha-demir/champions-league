@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SceneController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+Route::controller(SceneController::class)->group(function () {
+    Route::get('/', 'home')->name('home');
+    Route::get('/fixtures', 'fixtures')->name('fixtures');
+    Route::get('/simulation', 'simulation')->name('simulation');
 });
