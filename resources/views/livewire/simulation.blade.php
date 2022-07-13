@@ -102,36 +102,38 @@
             </div>
         @endif
 
-        <div class="overflow-x-auto max-w-2xl col-span-3">
-            <div class="inline-block min-w-full">
-                <div class="overflow-hidden">
-                    <table class="min-w-full text-center">
-                        <thead class="border-b bg-gray-800">
-                        <tr>
-                            <th scope="col" class="text-sm font-medium text-white px-6 py-4 text-left">
-                                Championship Predictions
-                            </th>
-                            <th scope="col" class="text-sm font-medium text-white px-6 py-4">
-                                %
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($predictions as $prediction)
-                            <tr class="bg-white border-b">
-                                <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap text-left">
-                                    {{$prediction['team_name']}}
-                                </td>
-                                <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                                    {{number_format($prediction['percentage'], 3)}}
-                                </td>
+        @if($predictions)
+            <div class="overflow-x-auto max-w-2xl col-span-3">
+                <div class="inline-block min-w-full">
+                    <div class="overflow-hidden">
+                        <table class="min-w-full text-center">
+                            <thead class="border-b bg-gray-800">
+                            <tr>
+                                <th scope="col" class="text-sm font-medium text-white px-6 py-4 text-left">
+                                    Championship Predictions
+                                </th>
+                                <th scope="col" class="text-sm font-medium text-white px-6 py-4">
+                                    %
+                                </th>
                             </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            @foreach($predictions as $prediction)
+                                <tr class="bg-white border-b">
+                                    <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap text-left">
+                                        {{$prediction['team_name']}}
+                                    </td>
+                                    <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
+                                        {{number_format(round($prediction['percentage']), 3)}}
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endif
 
         @if($lastWeekResults)
             <div class="rounded-lg shadow-lg bg-white col-span-2">

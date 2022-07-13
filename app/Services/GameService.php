@@ -115,8 +115,8 @@ class GameService
 
             //B team history
             $gameHistories[] = [
-              'goals_scored'   => $x,
-              'goals_conceded' => $y,
+              'goals_scored'   => $y,
+              'goals_conceded' => $x,
               'drawn'          => false,
               'won'            => false,
               'week'           => $fixture->week,
@@ -275,10 +275,11 @@ class GameService
     public function predictions(): ?array
     {
         $teams = Team::get();
-        $totalWeeks = $teams->count() - 1;
+        $totalWeeks = $teams->count();
+        $lastFixtures =  Fixture::where('is_completed', true)->get();
         $nextFixtures =  Fixture::where('is_completed', false)->get();
 
-        if ($nextFixtures->last()->week + 1 > $totalWeeks/2)
+        if ((count($lastFixtures) && $lastFixtures->last()->week + 1 > $totalWeeks/2) && count($nextFixtures))
         {
             $gameHistories = DB::table('game_histories')->select(DB::raw('SUM(points) as points, team_id'))->groupBy('team_id')->get();
             $teamPoints = [];
