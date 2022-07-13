@@ -178,15 +178,32 @@ class GameService
         {
             $teams = Team::all();
             $champion_statistics = [];
+
             foreach ($teams as $team)
             {
                 $team_statistics = $team->statistics();
-                if (!$champion_statistics || ($team_statistics["points"] > $champion_statistics["points"])) {
+
+                if (count($champion_statistics))
+                {
+                    if (($team_statistics["points"] > $champion_statistics["points"]))
+                    {
+                        $champion_statistics = $team->statistics();
+                        $champion_team = $team;
+                    }
+
+                    if (($team_statistics["points"] === $champion_statistics["points"]) && ($team_statistics["goal_difference"] > $champion_statistics["goal_difference"]))
+                    {
+                            $champion_statistics = $team->statistics();
+                            $champion_team = $team;
+                    }
+                }else
+                {
                     $champion_statistics = $team->statistics();
                     $champion_team = $team;
                 }
             }
         }
+
         return $champion_team;
     }
 
