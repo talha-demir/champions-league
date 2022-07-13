@@ -22,6 +22,7 @@ class TeamFactory extends Factory
           'name' => fake()->unique()->name,
           'player_quality' => rand(100,1000)/100,
           'audience_support' => rand(100,1000)/100,
+          'morale' => rand(100,1000)/100
         ];
     }
 }

@@ -40,6 +40,14 @@ class Team extends Model
     }
 
     /**
+     * @return float
+     */
+    public function getCalculatedMoraleAttribute(): float
+    {
+        return (is_null($this->lastGame) ||  $this->lastGame->won) ? 0 : $this->morale;
+    }
+
+    /**
      * @return Model|HasMany|null
      */
     public function getLastGameAttribute(): Model|HasMany|null
