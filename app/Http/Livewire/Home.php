@@ -15,14 +15,12 @@ use App\Models\Team;
 class Home extends Component
 {
     public Collection $teams;
-    private GameService $gameService;
     public Collection|null $fixtures;
 
     public function mount(GameService $gameService)
     {
-        $this->gameService = $gameService;
         $this->teams = Team::all();
-        $this->fixtures = $this->gameService->getTeamNamesOfUncompletedFixtures();
+        $this->fixtures = $gameService->getTeamNamesOfUncompletedFixtures();
     }
 
     public function render(): Factory|View|Application
@@ -30,10 +28,9 @@ class Home extends Component
         return view('livewire.home');
     }
 
-    public function generateFixtures()
+    public function generateFixtures(GameService $gameService)
     {
-        $this->gameService = App::make(GameService::class);
-        if (!$this->gameService->isLeagueFinished())
+        if (!$gameService->isLeagueFinished())
         {
             Artisan::call('create:fixture');
             return redirect()->route('fixtures');

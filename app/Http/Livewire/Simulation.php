@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Fixture;
 use App\Models\Team;
 use App\Services\GameService;
 use Illuminate\Contracts\Foundation\Application;
@@ -15,20 +16,23 @@ class Simulation extends Component
 {
     public Collection $teams;
     public Collection $nextWeekFixtures;
-    private GameService $gameService;
     public Team|null $championTeam;
+    public Fixture $getLastWeekFixture;
+    public Collection|null $lastWeekResults;
+    public array|null $predictions;
 
     public function mount(GameService $gameService)
     {
-        $this->gameService = $gameService;
-        $this->refreshData();
+        $this->refreshData($gameService);
     }
 
-    public function refreshData()
+    public function refreshData(GameService $gameService)
     {
         $this->teams = Team::all();
-        $this->nextWeekFixtures = $this->gameService->getNextWeekFixtures();
-        $this->championTeam = $this->gameService->getChampionTeam();
+        $this->nextWeekFixtures = $gameService->getNextWeekFixtures();
+        $this->championTeam = $gameService->getChampionTeam();
+        $this->lastWeekResults = $gameService->getLastWeekResults();
+        $this->predictions = $gameService->predictions();
     }
 
     public function render(): Factory|View|Application
@@ -36,24 +40,21 @@ class Simulation extends Component
         return view('livewire.simulation');
     }
 
-    public function playAllWeeks()
+    public function playAllWeeks(GameService $gameService)
     {
-        $this->gameService = App::make(GameService::class);
-        $this->gameService->playAllWeeks();
-        $this->refreshData();
+        $gameService->playAllWeeks();
+        $this->refreshData($gameService);
     }
 
-    public function playNextWeek()
+    public function playNextWeek(GameService $gameService)
     {
-        $this->gameService = App::make(GameService::class);
-        $this->gameService->playNextWeekMatches();
-        $this->refreshData();
+        $gameService->playNextWeekMatches();
+        $this->refreshData($gameService);
     }
 
-    public function resetData()
+    public function resetData(GameService $gameService)
     {
-        $this->gameService = App::make(GameService::class);
-        $this->gameService->resetData();
+        $gameService->resetData();
         return redirect()->route('home');
     }
 

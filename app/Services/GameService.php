@@ -8,6 +8,7 @@ use App\Models\Fixture;
 use App\Models\GameHistory;
 use App\Models\Team;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class Services
@@ -41,6 +42,7 @@ class GameService
               'goals_conceded' => $goals,
               'drawn'          => true,
               'won'            => false,
+              'week'           => $fixture->week,
               'game_points'    => $results[0],
               'points'         => 1,
               'team_id'        => $homeTeam->id,
@@ -52,6 +54,7 @@ class GameService
               'goals_conceded' => $goals,
               'drawn'          => true,
               'won'            => false,
+              'week'           => $fixture->week,
               'game_points'    => $results[0],
               'points'         => 1,
               'team_id'        => $awayTeam->id,
@@ -63,7 +66,7 @@ class GameService
         } elseif ($results[0] > $results[1]) {
             // team a won
             $x = rand(1, 5);
-            $y = rand(0,$x);
+            $y = rand(0,$x-1);
 
             //A team history
             $gameHistories[] = [
@@ -71,6 +74,7 @@ class GameService
               'goals_conceded' => $y,
               'drawn'          => false,
               'won'            => true,
+              'week'           => $fixture->week,
               'game_points'    => $results[0],
               'points'         => 3,
               'team_id'        => $homeTeam->id,
@@ -83,6 +87,7 @@ class GameService
               'goals_conceded' => $x,
               'drawn'          => false,
               'won'            => false,
+              'week'           => $fixture->week,
               'game_points'    => $results[1],
               'points'         => 0,
               'team_id'        => $awayTeam->id,
@@ -93,7 +98,7 @@ class GameService
         } else {
             // Team B won
             $x = rand(1, 5);
-            $y = rand(0,$x);
+            $y = rand(0,$x-1);
 
             //B team history
             $gameHistories[] = [
@@ -101,6 +106,7 @@ class GameService
               'goals_conceded' => $y,
               'drawn'          => false,
               'won'            => true,
+              'week'           => $fixture->week,
               'game_points'    => $results[1],
               'points'         => 3,
               'team_id'        => $awayTeam->id,
@@ -113,6 +119,7 @@ class GameService
               'goals_conceded' => $y,
               'drawn'          => false,
               'won'            => false,
+              'week'           => $fixture->week,
               'game_points'    => $results[0],
               'points'         => 0,
               'team_id'        => $homeTeam->id,
@@ -143,6 +150,17 @@ class GameService
         }
 
         return Fixture::where('is_completed', false)->where('week', $playedWeek + 1)->get();
+    }
+
+    public function getLastWeekFixtures()
+    {
+        $playedWeek = Fixture::where('is_completed', true)->max('week');
+        if (is_null($playedWeek))
+        {
+            return null;
+        }
+
+        return Fixture::where('is_completed', true)->where('week', $playedWeek)->get();
     }
 
     public function playNextWeekMatches(): bool
@@ -233,5 +251,99 @@ class GameService
                   return [ "home_team_name" => Team::find($value->home_team_id)->name, "away_team_name" => Team::find($value->away_team_id)->name];
               });
           });
+    }
+
+    public function getLastWeekResults(): Collection|null
+    {
+        $lastWeekfixtures = $this->getLastWeekFixtures();
+
+        if ($lastWeekfixtures) {
+            return $lastWeekfixtures->map(function ($value) {
+                return [
+                  "home_team_goals" => GameHistory::where('fixture_id',$value->id)->where('week', $value->week)->where('team_id', $value->home_team_id)->get()->first()->goals_scored,
+                  "home_team_name" => Team::find($value->home_team_id)->name,
+                  "away_team_goals" => GameHistory::where('fixture_id',$value->id)->where('week', $value->week)->where('team_id', $value->away_team_id)->get()->first()->goals_scored,
+                  "away_team_name" => Team::find($value->away_team_id)->name,
+                  "week" => $value->week
+                ];
+            });
+        }
+
+        return null;
+    }
+
+    public function predictions(): ?array
+    {
+        $teams = Team::get();
+        $totalWeeks = $teams->count() - 1;
+        $nextFixtures =  Fixture::where('is_completed', false)->get();
+
+        if ($nextFixtures->last()->week + 1 > $totalWeeks/2)
+        {
+            $gameHistories = DB::table('game_histories')->select(DB::raw('SUM(points) as points, team_id'))->groupBy('team_id')->get();
+            $teamPoints = [];
+            $championTeam = [];
+            $teamResults = [];
+
+            foreach ($gameHistories as $gameHistory)
+            {
+                $teamPoints[$gameHistory->team_id] = $gameHistory->points;
+                $championTeam[$gameHistory->team_id] = 0;
+                $teamResults[$gameHistory->team_id]['team_name'] = '';
+                $teamResults[$gameHistory->team_id]['percentage'] = 0;
+            }
+
+            for($i = 0; $i < 10; $i++)
+            {
+                foreach ($nextFixtures as $fixture)
+                {
+                    $results = $this->matchContext->playSoccerMatch($fixture->homeTeam(), $fixture->awayTeam());
+                    if (abs($results[0] - $results[1]) < self::EPSILON) {
+                        $teamPoints[$fixture->homeTeam()->id] += 1;
+                        $teamPoints[$fixture->awayTeam()->id] += 1;
+                    } elseif ($results[0] > $results[1])
+                    {
+                        $teamPoints[$fixture->homeTeam()->id] += 3;
+                    } else
+                    {
+                        $teamPoints[$fixture->awayTeam()->id] += 3;
+                    }
+                }
+                $teamPoints = collect($teamPoints)->sortByDesc(function ($value){
+                    return $value;
+                })->toArray();
+
+                foreach ($gameHistories as $gameHistory)
+                {
+                    $teamPoints[$gameHistory->team_id] = $gameHistory->points;
+                }
+
+                $championTeam[array_keys($teamPoints)[0]] += 1;
+            }
+
+            $results = $this->softmax($championTeam);
+
+            foreach ($results as $key => $result)
+            {
+                $teamResults[$key]['team_name'] = Team::find($key)->name;
+                $teamResults[$key]['percentage'] = 100 * $result;
+            }
+
+            return $teamResults;
+        }
+
+        return null;
+    }
+
+    private function softmax(array $v)
+    {
+        $v = array_map('exp',array_map('floatval',$v));
+        $sum = array_sum($v);
+
+        foreach($v as $index => $value) {
+            $v[$index] = $value/$sum;
+        }
+
+        return $v;
     }
 }

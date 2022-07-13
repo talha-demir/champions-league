@@ -75,7 +75,7 @@
 
         @if($nextWeekFixtures->count())
             <div class="rounded-lg shadow-lg bg-white max-h-48 col-span-2">
-                <h5 class="text-xl font-medium mb-2 border-b bg-gray-800 p-2 text-white">Week {{ $nextWeekFixtures->first()->week + 1}}</h5>
+                <h5 class="text-xl font-medium mb-2 border-b bg-gray-800 p-2 text-white">Next Week {{ $nextWeekFixtures->first()->week + 1}}</h5>
                 <div class="p-6">
                     @foreach($nextWeekFixtures as $key => $nextWeekFixture)
                         <p class="text-gray-700 text-base mb-4">
@@ -117,13 +117,13 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach($teams as $team)
+                        @foreach($predictions as $prediction)
                             <tr class="bg-white border-b">
                                 <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap text-left">
-                                    {{$team->name}}
+                                    {{$prediction['team_name']}}
                                 </td>
                                 <td class="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                                    0
+                                    {{number_format($prediction['percentage'], 3)}}
                                 </td>
                             </tr>
                         @endforeach
@@ -132,6 +132,19 @@
                 </div>
             </div>
         </div>
+
+        @if($lastWeekResults)
+            <div class="rounded-lg shadow-lg bg-white col-span-2">
+                <h5 class="text-xl font-medium mb-2 border-b bg-gray-800 p-2 text-white">Last Week {{$lastWeekResults->first()['week'] + 1}}</h5>
+                <div class="p-6">
+                    @foreach($lastWeekResults as $key => $lastWeekResult)
+                        <p class="text-gray-700 text-base mb-4">
+                            {{$lastWeekResult['home_team_name'] . ' ' . $lastWeekResult['home_team_goals']}} - {{$lastWeekResult['away_team_name'] . ' ' . $lastWeekResult['away_team_goals']}}
+                        </p>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
 
     <div class="overflow-x-auto col-span-3 px-32">

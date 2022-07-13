@@ -14,7 +14,8 @@ class MatchContext {
         $this->soccerMatchRule = $soccerMatchRule;
     }
 
-    public function playSoccerMatch(Team $homeTeam, Team $awayTeam) {
+    public function playSoccerMatch(Team $homeTeam, Team $awayTeam): array
+    {
         return $this->soccerMatchRule->calculateMatchResult($homeTeam, $awayTeam);
     }
 }
