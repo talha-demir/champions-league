@@ -7,6 +7,7 @@ use App\MatchRules\BasicMatchRule;
 use App\Models\Fixture;
 use App\Models\GameHistory;
 use App\Models\Team;
+use Illuminate\Support\Collection;
 
 /**
  * Class Services
@@ -24,9 +25,12 @@ class GameService
         $this->matchContext->setRules(new BasicMatchRule());
     }
 
-    public function playMatch(Team $a, Team $b, Fixture $fixture)
+    private function playMatch(Fixture $fixture): void
     {
-        $results = $this->matchContext->playSoccerMatch($a, $b);
+        $homeTeam = $fixture->homeTeam();
+        $awayTeam = $fixture->awayTeam();
+
+        $results = $this->matchContext->playSoccerMatch($homeTeam, $awayTeam);
 
         if (abs($results[0] - $results[1]) < self::EPSILON) {
             // draw state
@@ -39,7 +43,7 @@ class GameService
               'won'            => false,
               'game_points'    => $results[0],
               'points'         => 1,
-              'team_id'        => $a->id,
+              'team_id'        => $homeTeam->id,
               'fixture_id'     => $fixture->id,
             ];
 
@@ -50,11 +54,11 @@ class GameService
               'won'            => false,
               'game_points'    => $results[0],
               'points'         => 1,
-              'team_id'        => $b->id,
+              'team_id'        => $awayTeam->id,
               'fixture_id'     => $fixture->id,
             ];
 
-            GameHistory::upsert($gameHistories);
+            GameHistory::insert($gameHistories);
 
         } elseif ($results[0] > $results[1]) {
             // team a won
@@ -69,7 +73,7 @@ class GameService
               'won'            => true,
               'game_points'    => $results[0],
               'points'         => 3,
-              'team_id'        => $a->id,
+              'team_id'        => $homeTeam->id,
               'fixture_id'     => $fixture->id,
             ];
 
@@ -81,11 +85,11 @@ class GameService
               'won'            => false,
               'game_points'    => $results[1],
               'points'         => 0,
-              'team_id'        => $b->id,
+              'team_id'        => $awayTeam->id,
               'fixture_id'     => $fixture->id,
             ];
 
-            GameHistory::upsert($gameHistories);
+            GameHistory::insert($gameHistories);
         } else {
             // Team B won
             $x = rand(1, 5);
@@ -99,7 +103,7 @@ class GameService
               'won'            => true,
               'game_points'    => $results[1],
               'points'         => 3,
-              'team_id'        => $b->id,
+              'team_id'        => $awayTeam->id,
               'fixture_id'     => $fixture->id,
             ];
 
@@ -111,17 +115,23 @@ class GameService
               'won'            => false,
               'game_points'    => $results[0],
               'points'         => 0,
-              'team_id'        => $a->id,
+              'team_id'        => $homeTeam->id,
               'fixture_id'     => $fixture->id,
             ];
 
-            GameHistory::upsert($gameHistories);
+            GameHistory::insert($gameHistories);
         }
 
         $fixture->is_completed = true;
         $fixture->save();
+    }
 
-        return $fixture;
+    private function playFixtures(Collection $fixtures): void
+    {
+        foreach ($fixtures as $fixture)
+        {
+            $this->playMatch($fixture);
+        }
     }
 
     public function getNextWeekFixtures()
@@ -131,6 +141,80 @@ class GameService
         {
             return Fixture::where('week', 0)->get();
         }
+
         return Fixture::where('is_completed', false)->where('week', $playedWeek + 1)->get();
+    }
+
+    public function playNextWeekMatches(): bool
+    {
+        $nextWeekFixtures = $this->getNextWeekFixtures();
+
+        if (is_null($nextWeekFixtures))
+            return false;
+
+        $this->playFixtures($nextWeekFixtures);
+
+        return true;
+    }
+
+    public function playAllWeeks(): bool
+    {
+        $fixtures = Fixture::where('is_completed', false)->get();
+
+        if (is_null($fixtures))
+            return false;
+
+        $this->playFixtures($fixtures);
+
+        return true;
+    }
+
+    public function getChampionTeam(): Team|null
+    {
+        $fixtures = Fixture::where('is_completed', false)->get();
+        $champion_team = null;
+
+        if (!$fixtures->count())
+        {
+            $teams = Team::all();
+            $champion_statistics = [];
+            foreach ($teams as $team)
+            {
+                $team_statistics = $team->statistics();
+                if (!$champion_statistics || ($team_statistics["points"] > $champion_statistics["points"])) {
+                    $champion_statistics = $team->statistics();
+                    $champion_team = $team;
+                }
+            }
+        }
+        return $champion_team;
+    }
+
+    public function resetData()
+    {
+        $gameHistories = GameHistory::get(["id"])->toArray();
+        $fixtures = Fixture::get(["id"])->toArray();
+
+        GameHistory::whereIn('id',$gameHistories)->delete();
+        Fixture::whereIn('id',$fixtures)->delete();
+    }
+
+    public function isLeagueFinished(): bool
+    {
+        $fixtures = Fixture::where("is_completed", false)->get();
+        if(!count($fixtures)) {
+            return false;
+        }
+        return true;
+    }
+
+    public function getTeamNamesOfUncompletedFixtures(): Collection|null
+    {
+        return Fixture::where('is_completed', false)->get()
+               ->groupBy('week')->map(function ($group) {
+              return $group->map(function ($value) {
+                  return [ "home_team_name" => Team::find($value->home_team_id)->name, "away_team_name" => Team::find($value->away_team_id)->name];
+              });
+          });
     }
 }

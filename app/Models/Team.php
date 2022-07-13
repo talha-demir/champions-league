@@ -36,33 +36,52 @@ class Team extends Model
      */
     public function getAudienceAttribute(): float
     {
-        return $this->lastGame->won ? 0 : $this->audience_support;
+        return (is_null($this->lastGame) ||  $this->lastGame->won) ? 0 : $this->audience_support;
     }
 
     /**
-     * @return Model|HasMany
+     * @return Model|HasMany|null
      */
-    public function getLastGameAttribute(): Model|HasMany
+    public function getLastGameAttribute(): Model|HasMany|null
     {
-        return $this->gameHistory()->orderBy('week')->first();
+        return $this->gameHistories()->orderBy('week')?->first();
     }
-
-//    /**
-//     * @return Model|HasMany
-//     */
-//    public function getLastWeekFixtureAttribute(): Model|HasMany
-//    {
-//        return $this->gameHistory()->orderBy('week')->first();
-//    }
 
     /**
      * Get old matches
      *
      * @return HasMany
     */
-    public function gameHistory(): HasMany
+    public function gameHistories(): HasMany
     {
         return $this->hasMany(GameHistory::class, 'team_id', 'id');
+    }
+
+    public function statistics(): array
+    {
+        $gameHistories = $this->gameHistories;
+        $teamStatistics = [
+          "played" => $gameHistories->count(),
+          "goals_scored" => 0,
+          "goals_conceded" => 0,
+          "won" => 0,
+          "drawn" => 0,
+          "lost" => 0,
+          "points" => 0,
+        ];
+
+        foreach ($gameHistories as $gameHistory)
+        {
+            $teamStatistics["goals_scored"] += $gameHistory->goals_scored;
+            $teamStatistics["goals_conceded"] += $gameHistory->goals_conceded;
+            $teamStatistics["won"] += $gameHistory->won;
+            $teamStatistics["drawn"] += $gameHistory->drawn;
+            $teamStatistics["points"] += $gameHistory->points;
+            $teamStatistics["lost"] += ($gameHistory->won || $gameHistory->drawn) ? 0 : 1;
+        }
+        $teamStatistics["goal_difference"] = $teamStatistics["goals_scored"] - $teamStatistics["goals_conceded"];
+
+        return $teamStatistics;
     }
 
 

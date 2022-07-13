@@ -23,10 +23,10 @@ class BasicMatchRule implements SoccerMatchRules {
         return (($totalWeeks * $matchesPerWeek) - 1);
     }
 
-    public function calculateMatchResult(Team $a, Team $b): array
+    public function calculateMatchResult(Team $homeTeam, Team $awayTeam): array
     {
-        $results[] = $this->calculateTeamPoints($a);
-        $results[] = $this->calculateTeamPoints($b);
+        $results[] = $this->calculateTeamPoints($homeTeam);
+        $results[] = $this->calculateTeamPoints($awayTeam);
 
         return $results;
     }
@@ -37,7 +37,7 @@ class BasicMatchRule implements SoccerMatchRules {
         $team_points += $team->player_quality * self::PLAYER_QUALITY;
         $team_points += $team->audience * self::AUDIENCE_SUPPORT;
         $team_points += $team->coachQuality * self::COACH;
-        $team->morale += $team->lastGame->win ? $this->getBaseTeamMoraleFactor() : 0;
+        $team->morale += ($team->lastGame && $team->lastGame->won) ? $this->getBaseTeamMoraleFactor() : 0;
         $team->save();
         $team_points += $team->morale * self::TEAM_MORALE;
         $team_points += (rand(100,1000)/100) * self::CHANCE;
