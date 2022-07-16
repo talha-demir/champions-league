@@ -9,7 +9,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\App;
 use Livewire\Component;
 
 class Simulation extends Component
@@ -57,6 +56,4 @@ class Simulation extends Component
         $gameService->resetData();
         return redirect()->route('home');
     }
-
-
 }
