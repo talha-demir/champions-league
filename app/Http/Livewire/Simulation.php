@@ -34,7 +34,6 @@ class Simulation extends Component
         $this->predictions = $gameService->predictions();
     }
 
-
     public function render(): Factory|View|Application
     {
         return view('livewire.simulation');
@@ -57,6 +56,4 @@ class Simulation extends Component
         $gameService->resetData();
         return redirect()->route('home');
     }
-
-
 }
