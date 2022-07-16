@@ -26,6 +26,11 @@ class GameService
         $this->matchContext->setRules(new BasicMatchRule());
     }
 
+    /**
+     * @param Fixture $fixture
+     *
+     * @return void
+     */
     private function playMatch(Fixture $fixture): void
     {
         $homeTeam = $fixture->homeTeam();
@@ -133,6 +138,11 @@ class GameService
         $fixture->save();
     }
 
+    /**
+     * @param Collection $fixtures
+     *
+     * @return void
+     */
     private function playFixtures(Collection $fixtures): void
     {
         foreach ($fixtures as $fixture)
@@ -141,7 +151,10 @@ class GameService
         }
     }
 
-    public function getNextWeekFixtures()
+    /**
+     * @return mixed
+     */
+    public function getNextWeekFixtures(): mixed
     {
         $playedWeek = Fixture::where('is_completed', true)->max('week');
         if (is_null($playedWeek))
@@ -152,6 +165,9 @@ class GameService
         return Fixture::where('is_completed', false)->where('week', $playedWeek + 1)->get();
     }
 
+    /**
+     * @return null
+     */
     public function getLastWeekFixtures()
     {
         $playedWeek = Fixture::where('is_completed', true)->max('week');
@@ -163,6 +179,9 @@ class GameService
         return Fixture::where('is_completed', true)->where('week', $playedWeek)->get();
     }
 
+    /**
+     * @return bool
+     */
     public function playNextWeekMatches(): bool
     {
         $nextWeekFixtures = $this->getNextWeekFixtures();
@@ -175,6 +194,9 @@ class GameService
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public function playAllWeeks(): bool
     {
         $fixtures = Fixture::where('is_completed', false)->get();
@@ -187,6 +209,9 @@ class GameService
         return true;
     }
 
+    /**
+     * @return Team|null
+     */
     public function getChampionTeam(): Team|null
     {
         $fixtures = Fixture::where('is_completed', false)->get();
@@ -225,7 +250,10 @@ class GameService
         return $champion_team;
     }
 
-    public function resetData()
+    /**
+     * @return void
+     */
+    public function resetData(): void
     {
         $gameHistories = GameHistory::get(["id"])->toArray();
         $fixtures = Fixture::get(["id"])->toArray();
@@ -234,6 +262,9 @@ class GameService
         Fixture::whereIn('id',$fixtures)->delete();
     }
 
+    /**
+     * @return bool
+     */
     public function isLeagueFinished(): bool
     {
         $fixtures = Fixture::where("is_completed", false)->get();
@@ -243,6 +274,9 @@ class GameService
         return true;
     }
 
+    /**
+     * @return Collection|null
+     */
     public function getTeamNamesOfUncompletedFixtures(): Collection|null
     {
         return Fixture::where('is_completed', false)->get()
@@ -253,6 +287,9 @@ class GameService
           });
     }
 
+    /**
+     * @return Collection|null
+     */
     public function getLastWeekResults(): Collection|null
     {
         $lastWeekfixtures = $this->getLastWeekFixtures();
@@ -272,6 +309,9 @@ class GameService
         return null;
     }
 
+    /**
+     * @return array|null
+     */
     public function predictions(): ?array
     {
         $teams = Team::get();
@@ -336,7 +376,12 @@ class GameService
         return null;
     }
 
-    private function softmax(array $v)
+    /**
+     * @param array $v
+     *
+     * @return array
+     */
+    private function softmax(array $v): array
     {
         $v = array_map('exp',array_map('floatval',$v));
         $sum = array_sum($v);

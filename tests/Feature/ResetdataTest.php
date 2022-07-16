@@ -15,11 +15,11 @@ use Tests\TestCase;
 class ResetdataTest extends TestCase
 {
     /**
-     * A basic feature test example.
+     * Reset data test.
      *
      * @return void
      */
-    public function test_reset_data()
+    public function test_reset_data(): void
     {
         //create teams
         Team::factory()->times(4)->create();

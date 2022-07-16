@@ -14,7 +14,7 @@ class CreateFixturesTest extends TestCase
 {
     use RefreshDatabase;
     /**
-     * A basic feature test example.
+     * Create fixtures test.
      *
      * @return void
      */

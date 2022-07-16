@@ -17,11 +17,11 @@ class PlayAllWeeksTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * A basic feature test example.
+     * Play all weeks test.
      *
      * @return void
      */
-    public function test_play_all_week()
+    public function test_play_all_weeks()
     {
         //create teams
         Team::factory()->times(4)->create();
